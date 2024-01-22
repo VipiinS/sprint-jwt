@@ -3,6 +3,7 @@ package com.vipin.JWTdemo.config;
 import com.vipin.JWTdemo.entity.UserInfo;
 import com.vipin.JWTdemo.filter.JwtAuthFilter;
 import com.vipin.JWTdemo.service.JwtService;
+import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +19,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import static jakarta.servlet.DispatcherType.ERROR;
+import static jakarta.servlet.DispatcherType.FORWARD;
 
 @Configuration
 @EnableWebSecurity
@@ -46,18 +51,16 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.csrf().disable()
-                .authorizeHttpRequests()
-                .requestMatchers("/api/open","api/signin","api/signup").permitAll()
-                .and()
-                .authorizeHttpRequests().requestMatchers("/api/**")
-                .authenticated()
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+        http
+                .cors().and().csrf().disable()
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/api/open","api/signin","api/signup").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN"))
+                .sessionManagement((sessionManagement) ->
+                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class).build();
+                .addFilterBefore(jwtAuthFilter(),UsernamePasswordAuthenticationFilter.class);
+        return http.build();
 
     }
 
