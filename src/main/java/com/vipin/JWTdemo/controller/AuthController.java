@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/open")
 public class AuthController {
     @Autowired
     private  JwtService jwtService;
@@ -36,7 +36,7 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @PostMapping("/open")
+    @PostMapping("/")
     public String unProtected(){
         return "Unprotected endpoint";
     }
@@ -60,7 +60,6 @@ public class AuthController {
 
             JwtResponseDTO responseDTO = new JwtResponseDTO();
             responseDTO.setToken(jwtService.generateToken(requestDTO.getUsername(), roles));
-            System.out.println(responseDTO.getToken());
             return ResponseEntity.ok(responseDTO);
 
         }else {
@@ -97,15 +96,4 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/admin")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> adminEndpoint() {
-        return ResponseEntity.ok("Admin Endpoint Accessed");
-    }
-
-    @GetMapping("/user-or-admin")
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public ResponseEntity<String> userOrAdminEndpoint() {
-        return ResponseEntity.ok("User or Admin Endpoint Accessed");
-    }
 }
